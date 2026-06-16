@@ -1,0 +1,956 @@
+<!-- Purpose: Self-contained Feijoa frontend for local and Vercel deployment without runtime CDN dependencies. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#173f35" />
+    <title>Feijoa Quality</title>
+    <style>
+      :root {
+        --canopy: #173f35;
+        --leaf: #2f7d55;
+        --pulp: #f1d96b;
+        --ember: #c75a3a;
+        --ink: #15231f;
+        --mist: #f6f7f1;
+        --line: rgba(23, 63, 53, 0.1);
+        --shadow: 0 18px 50px rgba(21, 35, 31, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          linear-gradient(90deg, rgba(47, 125, 85, 0.06) 1px, transparent 1px),
+          linear-gradient(180deg, rgba(47, 125, 85, 0.06) 1px, transparent 1px),
+          var(--mist);
+        background-size: 32px 32px;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: pointer;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      .shell {
+        min-height: 100vh;
+      }
+
+      .header {
+        border-bottom: 1px solid var(--line);
+        background: rgba(246, 247, 241, 0.92);
+        backdrop-filter: blur(8px);
+      }
+
+      .header-inner,
+      .main {
+        width: min(1280px, calc(100% - 40px));
+        margin: 0 auto;
+      }
+
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 16px 0;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--canopy);
+      }
+
+      .brand-mark {
+        display: grid;
+        width: 44px;
+        height: 44px;
+        place-items: center;
+        border-radius: 999px;
+        background: var(--canopy);
+        color: var(--pulp);
+        font-weight: 800;
+      }
+
+      .brand h1 {
+        margin: 0;
+        font-size: 20px;
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .nav button,
+      .link-card,
+      .primary,
+      .secondary {
+        border: 0;
+        border-radius: 8px;
+        transition:
+          transform 160ms ease,
+          background 160ms ease,
+          box-shadow 160ms ease;
+      }
+
+      .nav button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 13px;
+        background: rgba(255, 255, 255, 0.75);
+        color: var(--canopy);
+        font-weight: 700;
+      }
+
+      .nav button.active,
+      .primary {
+        background: var(--canopy);
+        color: white;
+      }
+
+      .main {
+        padding: 24px 0 40px;
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+      }
+
+      .home-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .result-grid {
+        grid-template-columns: minmax(320px, 0.9fr) minmax(360px, 1.1fr);
+      }
+
+      .quality-grid {
+        grid-template-columns: 420px minmax(0, 1fr);
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        box-shadow: var(--shadow);
+      }
+
+      .panel-pad {
+        padding: 24px;
+      }
+
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h2 {
+        margin-bottom: 18px;
+        color: var(--canopy);
+        font-size: 24px;
+      }
+
+      .hero {
+        background: var(--canopy);
+        color: white;
+      }
+
+      .hero p {
+        margin: 12px 0 0;
+        color: var(--pulp);
+      }
+
+      .link-list {
+        display: grid;
+        gap: 16px;
+      }
+
+      .link-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--canopy);
+        padding: 20px;
+        text-align: left;
+        font-weight: 800;
+      }
+
+      .link-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow);
+      }
+
+      .dropzone {
+        display: flex;
+        min-height: 260px;
+        cursor: pointer;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1px dashed rgba(23, 63, 53, 0.3);
+        border-radius: 8px;
+        background: white;
+        padding: 24px;
+        text-align: center;
+      }
+
+      .dropzone:hover {
+        border-color: var(--leaf);
+        background: rgba(47, 125, 85, 0.06);
+      }
+
+      .dropzone img {
+        max-width: 100%;
+        max-height: 240px;
+        border-radius: 8px;
+        object-fit: contain;
+      }
+
+      .primary {
+        display: inline-flex;
+        width: 100%;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 18px;
+        padding: 13px 16px;
+        font-weight: 800;
+      }
+
+      .button-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 10px;
+        margin-top: 18px;
+      }
+
+      .button-row .primary {
+        margin-top: 0;
+      }
+
+      .secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgba(23, 63, 53, 0.18);
+        background: white;
+        color: var(--canopy);
+        padding: 13px 16px;
+        font-weight: 800;
+      }
+
+      .secondary:hover:not(:disabled) {
+        background: var(--mist);
+        box-shadow: 0 10px 24px rgba(21, 35, 31, 0.08);
+      }
+
+      .primary:hover:not(:disabled) {
+        background: var(--leaf);
+      }
+
+      .error {
+        margin: 12px 0 0;
+        color: var(--ember);
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .muted-box {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: white;
+        padding: 24px;
+        color: rgba(21, 35, 31, 0.68);
+        font-size: 14px;
+      }
+
+      .state-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--mist);
+        padding: 22px;
+      }
+
+      .state-row {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .state-name {
+        margin: 0;
+        color: var(--canopy);
+        font-size: clamp(30px, 4vw, 44px);
+        font-weight: 800;
+        text-transform: capitalize;
+      }
+
+      .confidence {
+        color: var(--canopy);
+        font-size: 22px;
+        font-weight: 800;
+      }
+
+      .bar-bg {
+        height: 11px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: rgba(23, 63, 53, 0.1);
+      }
+
+      .bar {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--leaf);
+      }
+
+      .scores {
+        display: grid;
+        gap: 16px;
+        margin-top: 18px;
+      }
+
+      .score-row {
+        display: grid;
+        gap: 6px;
+      }
+
+      .score-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        font-size: 14px;
+      }
+
+      .score-top span:first-child {
+        color: var(--canopy);
+        font-weight: 800;
+        text-transform: capitalize;
+      }
+
+      .field {
+        display: block;
+        margin-top: 17px;
+      }
+
+      .field-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 8px;
+        color: var(--canopy);
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .field input[type="number"] {
+        width: 112px;
+        border: 1px solid rgba(23, 63, 53, 0.16);
+        border-radius: 8px;
+        padding: 7px 9px;
+        text-align: right;
+      }
+
+      .field input[type="range"] {
+        width: 100%;
+        accent-color: var(--leaf);
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+      }
+
+      .metric-label {
+        margin: 0;
+        color: rgba(23, 63, 53, 0.72);
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        margin: 8px 0 0;
+        color: var(--canopy);
+        font-size: 24px;
+        font-weight: 800;
+      }
+
+      .metric-value small {
+        margin-left: 4px;
+        font-size: 13px;
+        opacity: 0.75;
+      }
+
+      .chart {
+        width: 100%;
+        min-height: 340px;
+      }
+
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        margin-top: 10px;
+        color: rgba(23, 63, 53, 0.75);
+        font-size: 12px;
+      }
+
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+      }
+
+      .history-table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      .history-table th {
+        background: var(--canopy);
+        color: white;
+        padding: 12px 14px;
+        text-align: left;
+      }
+
+      .history-table td {
+        border-bottom: 1px solid var(--line);
+        background: white;
+        padding: 12px 14px;
+        vertical-align: top;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      pre {
+        max-width: 560px;
+        overflow: auto;
+        border-radius: 8px;
+        background: var(--mist);
+        padding: 12px;
+        white-space: pre-wrap;
+      }
+
+      .pager {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-top: 1px solid var(--line);
+        background: white;
+        padding: 16px 24px;
+      }
+
+      .pager button {
+        border: 0;
+        border-radius: 8px;
+        background: var(--mist);
+        color: var(--canopy);
+        padding: 10px 14px;
+        font-weight: 800;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+      }
+
+      @media (max-width: 900px) {
+        .header-inner,
+        .home-grid,
+        .result-grid,
+        .quality-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .header-inner {
+          display: grid;
+          align-items: stretch;
+        }
+
+        .quality-grid {
+          display: grid;
+        }
+
+        .metrics {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 560px) {
+        .header-inner,
+        .main {
+          width: min(100% - 24px, 1280px);
+        }
+
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .button-row {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.FEJOA_API_URL = "__API_URL__";
+    </script>
+    <script>
+      const root = document.getElementById("root");
+      const rawApiBase = window.FEJOA_API_URL || "http://localhost:8000";
+      const API_BASE = rawApiBase === "/api" ? rawApiBase : rawApiBase.replace(/\/+$/, "");
+      let page = "home";
+      let selectedFile = null;
+      let selectedPreview = "";
+      let classification = null;
+      let qualityResult = null;
+      let qualityCurve = [];
+      let qualityError = "";
+      let classifyError = "";
+      let historyData = null;
+      let historyError = "";
+      let historyPage = 0;
+
+      const qualityForm = {
+        time_days: 14,
+        temperature: 12,
+        perforations: 2,
+        a_star: -1.2,
+        b_star: 16.5,
+        lightness_L: 69.3,
+      };
+
+      const qualityFields = [
+        ["time_days", "Storage days", 0, 35, 1],
+        ["temperature", "Temperature", 6, 17, 1],
+        ["perforations", "Perforations", 0, 3, 1],
+        ["a_star", "a*", -15, 15, 0.1],
+        ["b_star", "b*", 0, 35, 0.1],
+        ["lightness_L", "Lightness L*", 40, 85, 0.1],
+      ];
+
+      const targetLabels = [
+        ["weight_loss_pct", "Weight loss", "%"],
+        ["wvtr_g_m2_day", "WVTR", "g/m2/day"],
+        ["o2_pct", "O2", "%"],
+        ["co2_pct", "CO2", "%"],
+        ["rh_pct", "RH", "%"],
+        ["firmness_N", "Firmness", "N"],
+      ];
+
+      const series = [
+        ["weight_loss_pct", "#c75a3a"],
+        ["wvtr_g_m2_day", "#6b7c59"],
+        ["o2_pct", "#2f7d55"],
+        ["co2_pct", "#d1a935"],
+        ["rh_pct", "#2d6f91"],
+        ["firmness_N", "#173f35"],
+      ];
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(`${API_BASE}${path}`, options);
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json") ? await response.json() : await response.text();
+        if (!response.ok) {
+          const detail = typeof data === "object" && data ? data.detail : data;
+          throw new Error(Array.isArray(detail) ? JSON.stringify(detail) : detail || `API returned ${response.status}`);
+        }
+        return data;
+      }
+
+      function icon(name) {
+        const paths = {
+          Home: "M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3Z",
+          Results: "M4 19V5 M4 19h18 M8 16l4-5 4 3 5-8",
+          History: "M12 6v6l4 2 M21 12a9 9 0 1 1-3-6.7",
+          Upload: "M12 16V4 M7 9l5-5 5 5 M5 20h14",
+        };
+        return `<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${paths[name] || paths.Home}"></path></svg>`;
+      }
+
+      function layout(content) {
+        root.innerHTML = `
+          <div class="shell">
+            <header class="header">
+              <div class="header-inner">
+                <div class="brand">
+                  <div class="brand-mark">FQ</div>
+                  <h1>Feijoa Quality</h1>
+                </div>
+                <nav class="nav" aria-label="Primary">
+                  ${["home", "results", "history"].map((key) => `
+                    <button type="button" class="${page === key ? "active" : ""}" data-page="${key}">
+                      ${icon(key === "home" ? "Home" : key === "results" ? "Results" : "History")}
+                      ${key[0].toUpperCase() + key.slice(1)}
+                    </button>
+                  `).join("")}
+                </nav>
+              </div>
+            </header>
+            <main class="main">${content}</main>
+          </div>
+        `;
+        document.querySelectorAll("[data-page]").forEach((button) => {
+          button.addEventListener("click", () => navigate(button.dataset.page));
+        });
+      }
+
+      function navigate(nextPage) {
+        page = nextPage;
+        render();
+      }
+
+      function home() {
+        layout(`
+          <div class="grid home-grid">
+            <section class="panel panel-pad hero">
+              <h2>Feijoa Quality</h2>
+              <p>Classify fruit state and predict storage quality.</p>
+            </section>
+            <div class="link-list">
+              <button class="link-card" type="button" data-page="results"><span>${icon("Results")} Results</span><span>-&gt;</span></button>
+              <button class="link-card" type="button" data-page="history"><span>${icon("History")} History</span><span>-&gt;</span></button>
+            </div>
+          </div>
+        `);
+      }
+
+      function classifyHtml() {
+        const scores = classification?.scores
+          ? Object.entries(classification.scores).sort((a, b) => b[1] - a[1])
+          : [];
+        return `
+          <div class="grid result-grid">
+            <section class="panel panel-pad">
+              <h2>Fruit state</h2>
+              <label class="dropzone" id="dropzone">
+                ${selectedPreview
+                  ? `<img src="${selectedPreview}" alt="Selected feijoa preview" />`
+                  : `${icon("Upload")}<strong>Drop or choose an image</strong><span>JPEG or PNG</span>`}
+                <input class="sr-only" id="image-input" type="file" accept="image/png,image/jpeg" />
+              </label>
+              <div class="button-row">
+                <button class="primary" id="classify-button" type="button" ${selectedFile ? "" : "disabled"}>${icon("Upload")} Run classification</button>
+                <button class="secondary" id="reset-classify-button" type="button" ${selectedFile || classification || classifyError ? "" : "disabled"}>Reset</button>
+              </div>
+              ${classifyError ? `<p class="error">${escapeHtml(classifyError)}</p>` : ""}
+            </section>
+            <section class="panel panel-pad">
+              <h2>Result</h2>
+              ${classification ? `
+                <div class="state-card">
+                  <div class="state-row">
+                    <p class="state-name">${escapeHtml(classification.predicted_state)}</p>
+                    <span class="confidence">${(Number(classification.confidence) * 100).toFixed(1)}%</span>
+                  </div>
+                  <div class="bar-bg"><div class="bar" style="width:${Number(classification.confidence) * 100}%"></div></div>
+                </div>
+                <div class="scores">
+                  ${scores.map(([label, score]) => `
+                    <div class="score-row">
+                      <div class="score-top"><span>${escapeHtml(label)}</span><span>${(Number(score) * 100).toFixed(2)}%</span></div>
+                      <div class="bar-bg"><div class="bar" style="width:${Number(score) * 100}%"></div></div>
+                    </div>
+                  `).join("")}
+                </div>
+              ` : `<div class="muted-box">Waiting for an image prediction.</div>`}
+            </section>
+          </div>
+        `;
+      }
+
+      function qualityPanel(title = "Quality prediction", intro = "") {
+        return `
+          <div class="grid quality-grid" style="margin-top:24px">
+            <section class="panel panel-pad">
+              <h2>${escapeHtml(title)}</h2>
+              ${intro ? `<p>${escapeHtml(intro)}</p>` : ""}
+              ${qualityFields.map(([key, label, min, max, step]) => `
+                <label class="field">
+                  <div class="field-top">
+                    <span>${label}</span>
+                    <input data-quality-number="${key}" type="number" min="${min}" max="${max}" step="${step}" value="${qualityForm[key]}" />
+                  </div>
+                  <input data-quality-range="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${qualityForm[key]}" />
+                </label>
+              `).join("")}
+              <button class="primary" id="quality-button" type="button">${icon("Results")} Predict quality</button>
+              ${qualityError ? `<p class="error">${escapeHtml(qualityError)}</p>` : ""}
+            </section>
+            <section class="grid">
+              <div class="panel panel-pad">
+                <h2>Quality values</h2>
+                ${qualityResult ? `<div class="metrics">
+                  ${targetLabels.map(([key, label, unit]) => `
+                    <div class="metric">
+                      <p class="metric-label">${label}</p>
+                      <p class="metric-value">${Number(qualityResult[key]).toFixed(3)}<small>${unit}</small></p>
+                    </div>
+                  `).join("")}
+                </div>` : `<div class="muted-box">Waiting for quality prediction.</div>`}
+              </div>
+              <div class="panel panel-pad">
+                <h2>35-day quality curve</h2>
+                ${curveSvg()}
+              </div>
+            </section>
+          </div>
+        `;
+      }
+
+      function curveSvg() {
+        if (!qualityCurve.length) return `<div class="muted-box">Waiting for curve data.</div>`;
+        const width = 900;
+        const height = 330;
+        const pad = 34;
+        const values = series.flatMap(([key]) => qualityCurve.map((point) => Number(point[key])));
+        const minY = Math.min(...values);
+        const maxY = Math.max(...values);
+        const x = (day) => pad + (day / 35) * (width - pad * 2);
+        const y = (value) => height - pad - ((value - minY) / (maxY - minY || 1)) * (height - pad * 2);
+        const pathFor = (key) => qualityCurve.map((point, index) => `${index === 0 ? "M" : "L"} ${x(point.time_days)} ${y(Number(point[key]))}`).join(" ");
+        return `
+          <svg class="chart" viewBox="0 0 ${width} ${height}" aria-label="35-day quality curve">
+            ${[0, 1, 2, 3, 4].map((line) => {
+              const yy = pad + line * ((height - pad * 2) / 4);
+              return `<line x1="${pad}" x2="${width - pad}" y1="${yy}" y2="${yy}" stroke="#d9e4d5" stroke-dasharray="4 5"></line>`;
+            }).join("")}
+            <line x1="${pad}" x2="${width - pad}" y1="${height - pad}" y2="${height - pad}" stroke="#173f35" opacity="0.45"></line>
+            <line x1="${pad}" x2="${pad}" y1="${pad}" y2="${height - pad}" stroke="#173f35" opacity="0.45"></line>
+            ${series.map(([key, color]) => `<path d="${pathFor(key)}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round"></path>`).join("")}
+            <text x="${pad}" y="${height - 8}" fill="#173f35" font-size="13">0 days</text>
+            <text x="${width - pad - 50}" y="${height - 8}" fill="#173f35" font-size="13">35 days</text>
+          </svg>
+          <div class="legend">
+            ${series.map(([key, color]) => `<span><i class="dot" style="background:${color}"></i>${key}</span>`).join("")}
+          </div>
+        `;
+      }
+
+      function results() {
+        const title = classification ? "Storage quality estimate" : "Quality prediction";
+        const intro = classification
+          ? `Model 1 classified this fruit as ${classification.predicted_state}. Add the storage and colour measurements for Model 2 to estimate post-harvest quality.`
+          : "";
+        layout(`<div class="grid">${classifyHtml()}${qualityPanel(title, intro)}</div>`);
+        bindClassify();
+        bindQuality();
+      }
+
+      function predict() {
+        layout(qualityPanel());
+        bindQuality();
+      }
+
+      function bindClassify() {
+        const input = document.getElementById("image-input");
+        const dropzone = document.getElementById("dropzone");
+        const button = document.getElementById("classify-button");
+        const resetButton = document.getElementById("reset-classify-button");
+        if (!input || !dropzone || !button) return;
+        input.addEventListener("change", () => setFile(input.files?.[0]));
+        dropzone.addEventListener("dragover", (event) => event.preventDefault());
+        dropzone.addEventListener("drop", (event) => {
+          event.preventDefault();
+          setFile(event.dataTransfer.files?.[0]);
+        });
+        button.addEventListener("click", classifyImage);
+        resetButton?.addEventListener("click", resetClassification);
+      }
+
+      function setFile(file) {
+        if (!file) return;
+        selectedFile = file;
+        selectedPreview = URL.createObjectURL(file);
+        classification = null;
+        classifyError = "";
+        render();
+      }
+
+      function resetClassification() {
+        if (selectedPreview) URL.revokeObjectURL(selectedPreview);
+        selectedFile = null;
+        selectedPreview = "";
+        classification = null;
+        classifyError = "";
+        qualityResult = null;
+        qualityCurve = [];
+        qualityError = "";
+        render();
+      }
+
+      async function classifyImage() {
+        if (!selectedFile) return;
+        classifyError = "";
+        const formData = new FormData();
+        formData.append("image", selectedFile);
+        try {
+          classification = await api("/predict/classify", { method: "POST", body: formData });
+        } catch (error) {
+          classifyError = `Classification failed. ${error.message}`;
+        }
+        render();
+      }
+
+      function bindQuality() {
+        document.querySelectorAll("[data-quality-number], [data-quality-range]").forEach((input) => {
+          input.addEventListener("input", () => {
+            const key = input.dataset.qualityNumber || input.dataset.qualityRange;
+            qualityForm[key] = Number(input.value);
+            document.querySelectorAll(`[data-quality-number="${key}"], [data-quality-range="${key}"]`).forEach((paired) => {
+              if (paired !== input) paired.value = input.value;
+            });
+          });
+        });
+        const button = document.getElementById("quality-button");
+        if (button) button.addEventListener("click", predictQuality);
+      }
+
+      async function predictQuality() {
+        qualityError = "";
+        try {
+          const query = new URLSearchParams({
+            temperature: qualityForm.temperature,
+            perforations: qualityForm.perforations,
+            a_star: qualityForm.a_star,
+            b_star: qualityForm.b_star,
+            lightness_L: qualityForm.lightness_L,
+          });
+          const [prediction, curve] = await Promise.all([
+            api("/predict/quality", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(qualityForm),
+            }),
+            api(`/predict/quality/curve?${query.toString()}`),
+          ]);
+          qualityResult = prediction;
+          qualityCurve = curve;
+        } catch (error) {
+          qualityError = `Quality prediction failed. ${error.message}`;
+        }
+        render();
+      }
+
+      async function history() {
+        layout(`<section class="panel panel-pad"><h2>Prediction history</h2><div class="muted-box">Loading history.</div></section>`);
+        try {
+          historyError = "";
+          historyData = await api(`/history?limit=20&offset=${historyPage * 20}`);
+        } catch (error) {
+          historyError = `History failed. ${error.message}`;
+        }
+        historyLoaded();
+      }
+
+      function historyLoaded() {
+        if (historyError) {
+          layout(`<section class="panel panel-pad"><p class="error">${escapeHtml(historyError)}</p></section>`);
+          return;
+        }
+        const rows = historyData?.predictions || [];
+        layout(`
+          <section class="panel">
+            <div class="panel-pad"><h2>Prediction history</h2></div>
+            <div class="table-wrap">
+              <table class="history-table">
+                <thead><tr><th>Timestamp</th><th>Model</th><th>Input</th><th>Result</th></tr></thead>
+                <tbody>
+                  ${rows.length ? rows.map((item) => `
+                    <tr>
+                      <td>${escapeHtml(new Date(item.timestamp).toLocaleString())}</td>
+                      <td>${escapeHtml(item.model)}</td>
+                      <td>${escapeHtml(item.input_summary)}</td>
+                      <td><pre>${escapeHtml(JSON.stringify(item.result, null, 2))}</pre></td>
+                    </tr>
+                  `).join("") : `<tr><td colspan="4">No predictions saved yet.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+            <div class="pager">
+              <button id="prev-history" ${historyPage === 0 ? "disabled" : ""}>Previous</button>
+              <span>Page ${historyPage + 1}</span>
+              <button id="next-history" ${(historyPage + 1) * 20 >= Number(historyData?.total || 0) ? "disabled" : ""}>Next</button>
+            </div>
+          </section>
+        `);
+        document.getElementById("prev-history")?.addEventListener("click", () => {
+          historyPage = Math.max(0, historyPage - 1);
+          history();
+        });
+        document.getElementById("next-history")?.addEventListener("click", () => {
+          historyPage += 1;
+          history();
+        });
+      }
+
+      function render() {
+        if (page === "results") results();
+        else if (page === "history") history();
+        else home();
+      }
+
+      render();
+    </script>
+  </body>
+</html>
