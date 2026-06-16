@@ -1,66 +1,45 @@
 # Feijoa Deployment Handoff
 
-This package includes the latest Vercel fix for Hugging Face downloads.
+This package contains the deployable backend and frontend source code only.
 
-## Latest Fix
+Do not add local `.env` files, datasets, model folders, database files, logs, or `node_modules` to GitHub.
 
-The deployed backend was failing with:
+## Backend Vercel Project
 
-```text
-Read-only file system: '/home/sbx_user1051'
-```
+Use `backend` as the project root directory.
 
-That happened because Hugging Face tried to write its cache in Vercel's read-only home directory.
+Set these environment variables in Vercel:
 
-The backend now forces Hugging Face downloads into:
+- `DATABASE_URL`: Supabase PostgreSQL connection string with special characters URL-encoded and `?sslmode=require`
+- `HF_USERNAME`: Hugging Face username or organization that owns the model repos
+- `HF_TOKEN`: Hugging Face token, only needed if the model repos are private
+- `HF_HOME`: `/tmp/feijoa_huggingface_cache`
 
-```text
-/tmp/feijoa_huggingface_cache
-```
+Required Hugging Face files:
 
-This is Vercel's writable runtime filesystem location.
+- `<HF_USERNAME>/feijoa-classifier/model1_best.onnx`
+- `<HF_USERNAME>/feijoa-classifier/class_indices.json`
+- `<HF_USERNAME>/feijoa-regressor/random_forest.pkl`
+- `<HF_USERNAME>/feijoa-regressor/scaler.pkl`
 
-## Backend Environment Variables
+After deployment, open:
 
-Set these in the backend Vercel project:
+- `/`
+- `/health`
+- `/diagnostics`
 
-```text
-DATABASE_URL=
-HF_USERNAME=
-HF_TOKEN=
-HF_HOME=/tmp/feijoa_huggingface_cache
-```
+## Frontend Vercel Project
 
-`HF_TOKEN` is only required if the Hugging Face repos are private.
+Use `frontend` as the project root directory.
 
-## Frontend Environment Variable
+Set this environment variable in Vercel:
 
-Set this in the frontend Vercel project:
+- `REACT_APP_API_URL`: the working backend Vercel URL, for example `https://your-backend.vercel.app`
 
-```text
-REACT_APP_API_URL=https://your-current-working-backend-url.vercel.app
-```
+After deployment, open the frontend URL. The page should show the Feijoa Quality header and Home, Results, and History navigation.
 
-## Required Hugging Face Files
+## Current Fixes Included
 
-Classifier repo:
-
-```text
-model1_best.onnx
-class_indices.json
-```
-
-Regressor repo:
-
-```text
-random_forest.pkl
-scaler.pkl
-```
-
-## Redeploy Order
-
-1. Upload this package to GitHub.
-2. Redeploy backend with build cache disabled.
-3. Test backend `/diagnostics`.
-4. Redeploy frontend with the correct `REACT_APP_API_URL`.
-5. Test classification and quality prediction.
+- Backend uses ONNX Runtime instead of TensorFlow for Vercel compatibility.
+- Backend Hugging Face downloads use `/tmp/feijoa_huggingface_cache`, which is writable on Vercel.
+- Frontend static `index.html` has been rebuilt to avoid the blank-page React mount failure.
